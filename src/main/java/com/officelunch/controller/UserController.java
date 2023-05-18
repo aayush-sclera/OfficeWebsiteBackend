@@ -15,7 +15,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/officeLunch/employees")
+@RequestMapping("/officeLunch")
 public class UserController {
 
     @Autowired
@@ -32,7 +32,6 @@ public class UserController {
         userService.saveUser(user);
         return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
-
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody User user) {
         if (user.getUsername() == null || user.getPassword() == null) {

@@ -1,103 +1,107 @@
 package com.officelunch.service.serviceImpl;
 
 
+import com.officelunch.model.Availability;
 import com.officelunch.repositories.AvailabilityRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.ui.Model;
 
 import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
-import java.io.File;
+import javax.mail.internet.MimeMultipart;
 import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
 
 @Component
 @EnableScheduling
 public class ResetFoodDB {
     @Autowired
-    JavaMailSender mailSender;
-    @Autowired
     AvailabilityRepo availabilityRepo;
 
-//    public void resetDB() {
-//
-//        List<Availability> list = availabilityRepo.findAll();
-//
-//        for (Availability avl : list) {
-//            avl.setFoodPref("Not Selected");
-//            avl.setAttendance("Absent");
-//            availabilityRepo.save(avl);
-//        }
-//    }
+//    @Scheduled(cron = "* * * * * *")
+    public void resetDB() {
 
-    @Scheduled(cron = "*/60 * * * * *")
-    public  String sendEmail() throws MessagingException, IOException {
+        List<Availability> list = availabilityRepo.findAll();
 
-        String from = "tamangdinesh878@gmail.com";
-        String to = "atish.ojha@accessonline.io";
-
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
-        helper.setSubject("Here's your pic");
-        helper.setFrom(from);
-        helper.setTo(to);
-
-        String content = "<b>Dear guru</b>,<br><i>Please look at this nice picture:.</i>"
-                + "<br><img src='cid:image001'/><br><b>Best Regards</b>";
-        helper.setText(content, true);
-
-        FileSystemResource resource = new FileSystemResource(new File("/home/dinesh/Downloads/genPDF/abc.png"));
-        helper.addInline("image001", resource);
-
-        mailSender.send(message);
-
-        return "result";
+            for (Availability avl : list) {
+            avl.setFoodPref("Not Selected");
+            avl.setAttendance("Absent");
+            availabilityRepo.save(avl);
+        }
     }
-//
-//        Properties props = new Properties();
-//        props.setProperty("mail.smtp.auth","true");
-//        props.setProperty("mail.smtp.starttls.enable","true");
-//        props.setProperty("mail.smtp.host","smtp.accessonline.io");
-//        props.setProperty("mail.smtp.port","587");
-//        props.setProperty("mail.smtp.user","dinesh.pariyar@accessonline.io");
-//        props.setProperty("mail.smtp.password","Guit@r123dinesh$");
-//        props.setProperty("mail.smtp.starttls.enable", "true");
-//        props.setProperty("mail.smtp.auth", "true");
-//
-//
-//        Session session = Session.getDefaultInstance(props,new javax.mail.Authenticator(){
-//            protected PasswordAuthentication getPassAuthenticate(){
-//                return new PasswordAuthentication("dinesh.pariyar@accessonline.io","Guit@r123dinesh$");
-//            }
-//        });
-//
-//        Message msg = new MimeMessage(session);
-//        msg.setFrom(new InternetAddress("dinesh.pariyar@accessonline.io",false));
-//
-//        msg.setRecipients(Message.RecipientType.TO,InternetAddress.parse("atish.ojha@accessonline.io"));
-//        msg.setSubject("Dinesh");
-//        msg.setContent("Hello","text/html");
-//        msg.setSentDate(new Date());
-//
-//        MimeBodyPart messageBodyPart = new MimeBodyPart();
-//        messageBodyPart.setContent("Hira","text/html");
-//
-//        Multipart multipart = new MimeMultipart();
-//        multipart.addBodyPart(messageBodyPart);
-//
-//        MimeBodyPart attachPart = new MimeBodyPart();
-//        attachPart.attachFile("/home/dinesh/Downloads/genPDF/abc.png");
-//        multipart.addBodyPart(attachPart);
-//        msg.setContent(multipart);
-//        Transport.send(msg);
-//
-//    }
 
+//    @Scheduled(cron = "*/60 * * * * *")
+    public String sendEmail() throws MessagingException, IOException {
+        int i = 0;
+        List<String > emails=availabilityRepo.findAllAbsentUser();
+        InternetAddress[] internetAddresses = new InternetAddress[emails.size()];
+        for (String email:emails) {
+            internetAddresses[i] = new InternetAddress(email.toString());
+            i++;
+        }
+
+
+        String content = "Khana khaney  ki nai";
+
+        Properties props = new Properties();
+
+        props.setProperty("mail.transport.protocol", "smtp");
+        props.setProperty("mail.smtp.host", "smtp.gmail.com");
+        props.setProperty("mail.smtp.port", "587");
+        props.setProperty("mail.smtp.user", "tamangdinesh878@gmail.com");
+        props.setProperty("mail.smtp.password", "evocpewlxxvmjssg");
+        props.setProperty("mail.smtp.starttls.enable", "true");
+        props.setProperty("mail.smtp.auth", "true");
+
+
+        Session mailSession = Session.getInstance(props, new javax.mail.Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(
+                        "tamangdinesh878@gmail.com", "evocpewlxxvmjssg");
+            }
+        });
+        mailSession.setDebug(false);
+        try {
+            Transport transport = mailSession.getTransport();
+
+            MimeMessage message = new MimeMessage(mailSession);
+            message.setSubject("From Dinesh");
+            message.setFrom(new InternetAddress("tamangdinesh878@gmail.com"));
+
+            message.addRecipients(Message.RecipientType.TO,internetAddresses);
+
+            MimeMultipart multipart = new MimeMultipart();
+
+            MimeBodyPart messageBodyPart = new MimeBodyPart();
+
+            messageBodyPart.setContent(content, "text/html");
+
+            multipart.addBodyPart(messageBodyPart);
+            MimeBodyPart attachPart = new MimeBodyPart();
+
+            attachPart.attachFile("/home/dinesh/Downloads/genPDF/abc.png");
+            multipart.addBodyPart(attachPart);
+            message.setContent(multipart);
+
+            transport.connect();
+            transport.sendMessage(message, message.getRecipients(Message.RecipientType.TO));
+            transport.close();
+            System.out.println("send successfull");
+            return "SUCCESS";
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+            return "INVALID_EMAIL";
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+
+
+        return "success";
+    }
 
 }
