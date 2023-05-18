@@ -1,6 +1,8 @@
 package com.officelunch.service.serviceImpl;
 
+import com.officelunch.model.Availability;
 import com.officelunch.model.User;
+import com.officelunch.repositories.AvailabilityRepo;
 import com.officelunch.repositories.UserRepositories;
 import com.officelunch.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserServiceImpl implements UserService {
 
+    @Autowired
+    AvailabilityRepo availabilityRepo;
     private UserRepositories userRepositories;
     private BCryptPasswordEncoder encoder;
     @Autowired
@@ -24,6 +28,12 @@ public class UserServiceImpl implements UserService {
         String password = encoder.encode(user.getPassword());
         user.setPassword(password);
         userRepositories.save(user);
+        Availability availability = new Availability();
+        availability.setId(user.getId());
+        availability.setUsername(user.getUsername());
+        availability.setUser(user);
+        availability.setFoodPref("Not Selected");
+        availabilityRepo.save(availability);
     }
 
     @Override

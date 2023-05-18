@@ -13,27 +13,23 @@ import java.util.Date;
 @Getter
 @Setter
 public class Availability {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    private String foodPref;
+    private String attendance = "Absent";
     @OneToOne
     private User user;
-    private LocalDate date1;
-    private LocalDate date2;
-    private LocalDate date3;
-    private Boolean isPresent = Boolean.FALSE;
-
+    private String username;
 
     @Override
     public String toString() {
         return "Availability{" +
                 "id=" + id +
+                ", foodPref='" + foodPref + '\'' +
+                ", attendance='" + attendance + '\'' +
                 ", user=" + user +
-                ", date1='" + date1 + '\'' +
-                ", date2='" + date2 + '\'' +
-                ", date3='" + date3 + '\'' +
-                ", isPresent=" + isPresent +
+                ", username='" + username + '\'' +
                 '}';
     }
 }
