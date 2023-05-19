@@ -17,7 +17,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/officeLunch")
+@RequestMapping("/officeLunch/employees")
 public class UserController {
 
     @Autowired
