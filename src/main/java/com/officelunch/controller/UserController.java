@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.security.Principal;
 import java.time.LocalDate;
 
@@ -33,7 +35,7 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody User user) {
+    public ResponseEntity<?> loginUser(@RequestBody User user,HttpSession session) {
         if (user.getUsername() == null || user.getPassword() == null) {
             return new ResponseEntity<>("Username or Password is Empty", HttpStatus.EXPECTATION_FAILED);
         }
@@ -41,17 +43,19 @@ public class UserController {
         if (userData == null) {
             return new ResponseEntity<>("username or password is invalid", HttpStatus.BAD_GATEWAY);
         } else {
+            session.setAttribute("username",user.getUsername());
             return new ResponseEntity<>("User login Successfully", HttpStatus.OK);
         }
     }
 
 
     @PostMapping("/enroll")
-    public ResponseEntity<?> enrollForFood(@RequestBody Availability availability) {
+    public ResponseEntity<?> enrollForFood(@RequestBody Availability availability,HttpSession session) {
+        String ss = (String) session.getAttribute("username");
         String name = availability.getUsername();
+        System.out.println(name);
         User user =userRepositories.findByUsername(availability.getUsername());
-        System.out.println(user);
-        if(user != null){
+        if(user != null && ss.equals(user.getUsername())){
             availability.setUser(user);
             availability.setAttendance("Present");
             return ResponseEntity.ok().body(availabilityService.saveEmployeeStatus(availability, user.getId()));
@@ -59,13 +63,18 @@ public class UserController {
         }else {
             return ResponseEntity.badRequest().body(name+" is in home .");
         }
-
-
     }
 
     @PostMapping("/pwreset")
     public ResponseEntity<?> resetPassword(@RequestBody User user) {
         return new ResponseEntity<>(userService.resetUserPassword(user), HttpStatus.OK);
+    }
+
+    @PostMapping("/logout")
+    public String logout(HttpServletRequest request){
+        HttpSession session =request.getSession();
+        session.invalidate();
+        return "user logged out successfully";
     }
 
 
