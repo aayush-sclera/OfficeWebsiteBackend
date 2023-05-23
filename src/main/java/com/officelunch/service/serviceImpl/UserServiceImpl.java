@@ -6,6 +6,8 @@ import com.officelunch.repositories.AvailabilityRepo;
 import com.officelunch.repositories.UserRepositories;
 import com.officelunch.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -14,21 +16,24 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    AvailabilityRepo availabilityRepo;
-    private UserRepositories userRepositories;
-    private BCryptPasswordEncoder encoder;
+    private AvailabilityRepo availabilityRepo;
 
     @Autowired
-    UserServiceImpl(UserRepositories userRepositories, BCryptPasswordEncoder encoder) {
+    private UserRepositories userRepositories;
+    @Autowired
+    private BCryptPasswordEncoder encoder;
+
+
+    @Autowired
+    UserServiceImpl(UserRepositories userRepositories, BCryptPasswordEncoder  encoder) {
         this.userRepositories = userRepositories;
         this.encoder = encoder;
     }
 
     @Override
     public String saveUser(User user) {
-        if (userRepositories.existsByUsername(user.getUsername())) {
-            return null;
-        } else {
+        System.out.println("yolo");
+
             String password = encoder.encode(user.getPassword());
             user.setPassword(password);
             userRepositories.save(user);
@@ -40,7 +45,7 @@ public class UserServiceImpl implements UserService {
             availabilityRepo.save(availability);
 
             return "registered Success";
-        }
+
     }
 
     @Override
