@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -32,16 +34,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String saveUser(User user) {
-        System.out.println("yolo");
 
             String password = encoder.encode(user.getPassword());
+            user.setUsername(user.getUsername().toLowerCase());
             user.setPassword(password);
+            user.setConfirmPass(password);
             userRepositories.save(user);
             Availability availability = new Availability();
             availability.setId(user.getId());
-            availability.setUsername(user.getUsername());
+            availability.setUsername(user.getUsername().toLowerCase());
             availability.setUser(user);
             availability.setFoodPref("Not Selected");
+            availability.setDate(LocalDate.now());
             availabilityRepo.save(availability);
 
             return "registered Success";
@@ -50,7 +54,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByUserName(String username, String password) {
-        User user = userRepositories.findByUsername(username);
+        User user = userRepositories.findByUsername(username.toLowerCase());
         System.out.println(user.getPassword());
         if (user == null) {
             System.out.println("Invalid Username and Password");
@@ -66,7 +70,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User resetUserPassword(User user) {
         String password = encoder.encode(user.getPassword());
-        User usr = userRepositories.findByUsername(user.getUsername());
+        User usr = userRepositories.findByUsername(user.getUsername().toLowerCase());
         usr.setPassword(password);
         return userRepositories.save(usr);
 

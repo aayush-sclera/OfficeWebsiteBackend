@@ -2,12 +2,9 @@ package com.officelunch.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Getter
@@ -22,6 +19,8 @@ public class Availability {
     private User user;
     private String username;
 
+    private LocalDate date;
+
     @Override
     public String toString() {
         return "Availability{" +
@@ -30,6 +29,7 @@ public class Availability {
                 ", attendance='" + attendance + '\'' +
                 ", user=" + user +
                 ", username='" + username + '\'' +
+                ", CurrentDay='" + date + '\'' +
                 '}';
     }
 }

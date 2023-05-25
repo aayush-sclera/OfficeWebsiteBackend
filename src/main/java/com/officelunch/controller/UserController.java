@@ -4,6 +4,7 @@ import com.officelunch.helper.ConsequentDaysValidator;
 import com.officelunch.model.Availability;
 import com.officelunch.model.TokenResponse;
 import com.officelunch.model.User;
+import com.officelunch.repositories.AvailabilityRepo;
 import com.officelunch.repositories.UserRepositories;
 //import com.officelunch.security.JwtTokenUtil;
 import com.officelunch.security.JavaTokenUtil;
@@ -12,7 +13,6 @@ import com.officelunch.service.AvailabilityService;
 import com.officelunch.service.UserService;
 import com.officelunch.service.UserServiceTwo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,16 +21,17 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import java.time.LocalDate;
+import java.util.Objects;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/officeLunch/employees")
-@CrossOrigin(origins = "http://192.168.1.66:3000", allowedHeaders = "*")
+//@CrossOrigin(origins = "http://192.168.1.66:3000", allowedHeaders = "*")
 public class UserController {
 
     @Autowired
@@ -44,6 +45,8 @@ public class UserController {
     @Autowired
     AuthenticationManager authenticationManager;
 
+    @Autowired
+    AvailabilityRepo availabilityRepo;
     @Autowired
     private AvailabilityService availabilityService;
     @Autowired
@@ -67,8 +70,21 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
-
-        return ResponseEntity.ok().body(userService.saveUser(user));
+        if(userRepositories.existsByUsername(user.getUsername().toLowerCase())){
+            return ResponseEntity.badRequest().body("Duplicate entry of Username");
+        }if(userRepositories.existsByEmail(user.getEmail())){
+            return ResponseEntity.badRequest().body("Duplicate entry of Email");
+        }
+        if(Pattern.compile("@accessonline.io|@gmail.com").matcher(user.getEmail()).find()){
+            if(user.getPassword().equals(user.getConfirmPass())){
+                userService.saveUser(user);
+            }else {
+                return ResponseEntity.badRequest().body("Password Do not match");
+            }
+            return ResponseEntity.ok().body("Register success");
+        }else{
+            return ResponseEntity.badRequest().body("Error: Email must contain  domain name '@accessonline.io' and '@gmail.com' ");
+        }
     }
 //
 //        }
@@ -94,17 +110,14 @@ public class UserController {
 
     @PostMapping("/login")
     public String authenticateuserandgenerateToken(@RequestBody User user) {
-
         try {
-            System.out.println("-----" + user.getUsername() + user.getPassword());
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+                    new UsernamePasswordAuthenticationToken(user.getUsername().toLowerCase(), user.getPassword()));
             if (authentication.isAuthenticated()) {
 
                 TokenResponse tok = new TokenResponse();
 //                tok.setToken(jwt.generateToken(user.getUsername()));
-                String tokensss = jwt.generateToken(user.getUsername());
-                System.out.println(tok);
+                String tokensss = jwt.generateToken(user.getUsername().toLowerCase());
                 return tokensss;
             } else {
                 throw new UsernameNotFoundException(user.getUsername());
@@ -153,17 +166,34 @@ public class UserController {
 ////            }
 ////        }
 //    }
+
+
+    @GetMapping("/getall")
+    public ResponseEntity<?> getAllCountOfVegAndNonVeg(){
+        return ResponseEntity.ok().body(availabilityRepo.countAllVegandNonveg());
+    }
+
     @PostMapping("/enroll")
     public ResponseEntity<?> postsss(@RequestBody Availability availability) {
 
-        UserSpringDetails user = (UserSpringDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String name = user.getUsername();
-        User usr = userRepositories.findByUsername(name);
-        availability.setFoodPref(availability.getFoodPref());
-        availability.setUser(usr);
-        availability.setAttendance("Present");
 
-        return new ResponseEntity<>(availabilityService.saveEmployeeStatus(availability, usr.getId()), HttpStatus.OK);
+        UserSpringDetails user = (UserSpringDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String name = user.getUsername().toLowerCase();
+        User usr = userRepositories.findByUsername(name);
+        LocalDate prevDate = availabilityRepo.findById(usr.getId()).get().getDate();
+//        if (prevDate==null) availability.setDate(LocalDate.now());
+        LocalDate today = LocalDate.now();
+        if(!today.isEqual(prevDate)){
+            availability.setFoodPref(availability.getFoodPref());
+            availability.setUser(usr);
+            availability.setDate(today);
+            availability.setAttendance("Present");
+            return new ResponseEntity<>(availabilityService.saveEmployeeStatus(availability, usr.getId()), HttpStatus.OK);
+        }else {
+            return ResponseEntity.badRequest().body("You have already inserted for today");
+        }
+
+
 
     }
 
@@ -175,9 +205,7 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public String logout(HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        session.invalidate();
+    public String logout() {
         return "user logged out successfully";
     }
 
