@@ -78,6 +78,7 @@ public class UserController {
         if(Pattern.compile("@accessonline.io|@gmail.com").matcher(user.getEmail()).find()){
             if(user.getPassword().equals(user.getConfirmPass())){
                 userService.saveUser(user);
+                System.out.println("helllllllllll");
             }else {
                 return ResponseEntity.badRequest().body("Password Do not match");
             }
