@@ -72,6 +72,7 @@ public class UserServiceImpl implements UserService {
         String password = encoder.encode(user.getPassword());
         User usr = userRepositories.findByUsername(user.getUsername().toLowerCase());
         usr.setPassword(password);
+        usr.setConfirmPass(password);
         return userRepositories.save(usr);
 
     }

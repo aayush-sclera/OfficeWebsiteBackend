@@ -201,7 +201,12 @@ public class UserController {
 
     @PostMapping("/pwReset")
     public ResponseEntity<?> resetPassword(@RequestBody User user, HttpServletRequest request) {
-        return new ResponseEntity<>(userService.resetUserPassword(user), HttpStatus.OK);
+        if(user.getPassword().equals(user.getConfirmPass())){
+
+            return new ResponseEntity<>(userService.resetUserPassword(user), HttpStatus.OK);
+        }else {
+            return ResponseEntity.badRequest().body("Password donot match ");
+        }
 
     }
 
