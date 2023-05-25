@@ -38,7 +38,6 @@ public class UserServiceImpl implements UserService {
             String password = encoder.encode(user.getPassword());
             user.setUsername(user.getUsername().toLowerCase());
             user.setPassword(password);
-            user.setConfirmPass(password);
             userRepositories.save(user);
             Availability availability = new Availability();
             availability.setId(user.getId());
@@ -72,9 +71,7 @@ public class UserServiceImpl implements UserService {
         String password = encoder.encode(user.getPassword());
         User usr = userRepositories.findByUsername(user.getUsername().toLowerCase());
         usr.setPassword(password);
-        usr.setConfirmPass(password);
         return userRepositories.save(usr);
-
     }
 
     @Override

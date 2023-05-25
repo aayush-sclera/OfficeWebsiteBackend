@@ -21,10 +21,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -44,7 +46,6 @@ public class UserController {
     private UserServiceTwo userServiceTwo;
     @Autowired
     AuthenticationManager authenticationManager;
-
     @Autowired
     AvailabilityRepo availabilityRepo;
     @Autowired
@@ -53,7 +54,11 @@ public class UserController {
     private ConsequentDaysValidator validator;
 
     @Autowired
-    PasswordEncoder passwordEncoder;
+    BCryptPasswordEncoder encoder;
+
+//    @Autowired
+//    PasswordEncoder passwordEncoder;
+
 //    @PostMapping("/register")
 //    public TokenResponse postUser(@RequestBody User user) {
 //        System.out.println(user.getUsername());
@@ -70,20 +75,21 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
-        if(userRepositories.existsByUsername(user.getUsername().toLowerCase())){
+        if (userRepositories.existsByUsername(user.getUsername().toLowerCase())) {
             return ResponseEntity.badRequest().body("Duplicate entry of Username");
-        }if(userRepositories.existsByEmail(user.getEmail())){
+        }
+        if (userRepositories.existsByEmail(user.getEmail())) {
             return ResponseEntity.badRequest().body("Duplicate entry of Email");
         }
-        if(Pattern.compile("@accessonline.io|@gmail.com").matcher(user.getEmail()).find()){
-            if(user.getPassword().equals(user.getConfirmPass())){
+        if (Pattern.compile("@accessonline.io|@gmail.com").matcher(user.getEmail()).find()) {
+            if (user.getPassword().equals(user.getConfirmPass())) {
                 userService.saveUser(user);
                 System.out.println("helllllllllll");
-            }else {
+            } else {
                 return ResponseEntity.badRequest().body("Password Do not match");
             }
             return ResponseEntity.ok().body("Register success");
-        }else{
+        } else {
             return ResponseEntity.badRequest().body("Error: Email must contain  domain name '@accessonline.io' and '@gmail.com' ");
         }
     }
@@ -110,24 +116,27 @@ public class UserController {
 //    }
 
     @PostMapping("/login")
-    public String authenticateuserandgenerateToken(@RequestBody User user) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(user.getUsername().toLowerCase(), user.getPassword()));
-            if (authentication.isAuthenticated()) {
+    public ResponseEntity<?> authenticateuserandgenerateToken(@RequestBody User user, Principal principal) {
+        User usr = userRepositories.findByUsername(principal.getName());
+        if (encoder.matches(user.getPassword(), usr.getPassword())) {
+            try {
+                Authentication authentication = authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(user.getUsername().toLowerCase(), user.getPassword()));
+                if (authentication.isAuthenticated()) {
 
-                TokenResponse tok = new TokenResponse();
+                    TokenResponse tok = new TokenResponse();
 //                tok.setToken(jwt.generateToken(user.getUsername()));
-                String tokensss = jwt.generateToken(user.getUsername().toLowerCase());
-                return tokensss;
-            } else {
-                throw new UsernameNotFoundException(user.getUsername());
+                    String tokensss = jwt.generateToken(user.getUsername().toLowerCase());
+                    return ResponseEntity.ok().body(tokensss);
+                } else {
+                    throw new UsernameNotFoundException(user.getUsername());
+                }
+            } catch (AuthenticationException e) {
+                e.printStackTrace();
             }
-        } catch (AuthenticationException e) {
-            e.printStackTrace();
-        }
 
-        return null;
+        }
+        return ResponseEntity.badRequest().body("Password Do not Match");
     }
 
     //    @PostMapping("/enroll")
@@ -170,7 +179,7 @@ public class UserController {
 
 
     @GetMapping("/getall")
-    public ResponseEntity<?> getAllCountOfVegAndNonVeg(){
+    public ResponseEntity<?> getAllCountOfVegAndNonVeg() {
         return ResponseEntity.ok().body(availabilityRepo.countAllVegandNonveg());
     }
 
@@ -184,16 +193,15 @@ public class UserController {
         LocalDate prevDate = availabilityRepo.findById(usr.getId()).get().getDate();
 //        if (prevDate==null) availability.setDate(LocalDate.now());
         LocalDate today = LocalDate.now();
-        if(!today.isEqual(prevDate)){
+        if (!today.isEqual(prevDate)) {
             availability.setFoodPref(availability.getFoodPref());
             availability.setUser(usr);
             availability.setDate(today);
             availability.setAttendance("Present");
             return new ResponseEntity<>(availabilityService.saveEmployeeStatus(availability, usr.getId()), HttpStatus.OK);
-        }else {
+        } else {
             return ResponseEntity.badRequest().body("You have already inserted for today");
         }
-
 
 
     }
@@ -201,10 +209,10 @@ public class UserController {
 
     @PostMapping("/pwReset")
     public ResponseEntity<?> resetPassword(@RequestBody User user, HttpServletRequest request) {
-        if(user.getPassword().equals(user.getConfirmPass())){
+        if (user.getPassword().equals(user.getConfirmPass())) {
 
             return new ResponseEntity<>(userService.resetUserPassword(user), HttpStatus.OK);
-        }else {
+        } else {
             return ResponseEntity.badRequest().body("Password donot match ");
         }
 
