@@ -25,8 +25,8 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     @Override
-    public Availability saveEmployeeStatus(Availability availability, int userId) {
-      availability.setId(userId);
+    public Availability saveEmployeeStatus(Availability availability) {
+        System.out.println("===========================:: "+availability.getDate());
       return availabilityRepo.save(availability);
     }
 }

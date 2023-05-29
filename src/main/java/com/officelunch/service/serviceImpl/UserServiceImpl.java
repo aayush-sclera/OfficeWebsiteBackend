@@ -39,14 +39,6 @@ public class UserServiceImpl implements UserService {
             user.setUsername(user.getUsername().toLowerCase());
             user.setPassword(password);
             userRepositories.save(user);
-            Availability availability = new Availability();
-            availability.setId(user.getId());
-            availability.setUsername(user.getUsername().toLowerCase());
-            availability.setUser(user);
-            availability.setFoodPref("Not Selected");
-            availability.setDate(LocalDate.now());
-            availabilityRepo.save(availability);
-
             return "registered Success";
 
     }

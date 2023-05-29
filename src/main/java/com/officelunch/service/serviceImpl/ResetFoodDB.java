@@ -24,16 +24,15 @@ public class ResetFoodDB {
     AvailabilityRepo availabilityRepo;
 
 //    @Scheduled(cron = "* * * * * *")
-    public void resetDB() {
-
-        List<Availability> list = availabilityRepo.findAll();
-
-            for (Availability avl : list) {
-            avl.setFoodPref("Not Selected");
-            avl.setAttendance("Absent");
-            availabilityRepo.save(avl);
-        }
-    }
+//    public void resetDB() {
+//
+//        List<Availability> list = availabilityRepo.findAll();
+//
+//            for (Availability avl : list) {
+//            avl.setFoodPref("Not Selected");
+//            availabilityRepo.save(avl);
+//        }
+//    }
 
 //    @Scheduled(cron = "*/60 * * * * *")
     public String sendEmail() throws MessagingException, IOException {

@@ -14,11 +14,8 @@ public class Availability {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String foodPref;
-    private String attendance = "Absent";
     @OneToOne
     private User user;
-    private String username;
-
     private LocalDate date;
 
     @Override
@@ -26,9 +23,7 @@ public class Availability {
         return "Availability{" +
                 "id=" + id +
                 ", foodPref='" + foodPref + '\'' +
-                ", attendance='" + attendance + '\'' +
                 ", user=" + user +
-                ", username='" + username + '\'' +
                 ", CurrentDay='" + date + '\'' +
                 '}';
     }

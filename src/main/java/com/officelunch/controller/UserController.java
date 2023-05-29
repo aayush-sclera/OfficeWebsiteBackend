@@ -50,8 +50,8 @@ public class UserController {
     AvailabilityRepo availabilityRepo;
     @Autowired
     private AvailabilityService availabilityService;
-    @Autowired
-    private ConsequentDaysValidator validator;
+//    @Autowired
+//    private ConsequentDaysValidator validator;
 
     @Autowired
     BCryptPasswordEncoder encoder;
@@ -84,7 +84,6 @@ public class UserController {
         if (Pattern.compile("@accessonline.io|@gmail.com").matcher(user.getEmail()).find()) {
             if (user.getPassword().equals(user.getConfirmPass())) {
                 userService.saveUser(user);
-                System.out.println("helllllllllll");
             } else {
                 return ResponseEntity.badRequest().body("Password Do not match");
             }
@@ -116,8 +115,14 @@ public class UserController {
 //    }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateuserandgenerateToken(@RequestBody User user, Principal principal) {
-        User usr = userRepositories.findByUsername(principal.getName());
+    public ResponseEntity<?> authenticateUserAndGenerateToken(@RequestBody User user, Principal principal) {
+        User usr;
+        if(principal!=null){
+            usr = userRepositories.findByUsername(principal.getName());
+
+        }else {
+            usr = userRepositories.findByUsername(user.getUsername());
+        }
         if (encoder.matches(user.getPassword(), usr.getPassword())) {
             try {
                 Authentication authentication = authenticationManager.authenticate(
@@ -126,8 +131,8 @@ public class UserController {
 
                     TokenResponse tok = new TokenResponse();
 //                tok.setToken(jwt.generateToken(user.getUsername()));
-                    String tokensss = jwt.generateToken(user.getUsername().toLowerCase());
-                    return ResponseEntity.ok().body(tokensss);
+                    String tokens = jwt.generateToken(user.getUsername().toLowerCase());
+                    return ResponseEntity.ok().body(tokens);
                 } else {
                     throw new UsernameNotFoundException(user.getUsername());
                 }
@@ -180,40 +185,34 @@ public class UserController {
 
     @GetMapping("/getall")
     public ResponseEntity<?> getAllCountOfVegAndNonVeg() {
-        return ResponseEntity.ok().body(availabilityRepo.countAllVegandNonveg());
+        String today = LocalDate.now().toString();
+        return ResponseEntity.ok().body(availabilityRepo.countAllFoodType(today));
     }
 
     @PostMapping("/enroll")
-    public ResponseEntity<?> postsss(@RequestBody Availability availability) {
-
+    public ResponseEntity<?> post(@RequestBody Availability availability) {
 
         UserSpringDetails user = (UserSpringDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String name = user.getUsername().toLowerCase();
         User usr = userRepositories.findByUsername(name);
-        LocalDate prevDate = availabilityRepo.findById(usr.getId()).get().getDate();
-//        if (prevDate==null) availability.setDate(LocalDate.now());
         LocalDate today = LocalDate.now();
-        if (!today.isEqual(prevDate)) {
-            availability.setFoodPref(availability.getFoodPref());
-            availability.setUser(usr);
-            availability.setDate(today);
-            availability.setAttendance("Present");
-            return new ResponseEntity<>(availabilityService.saveEmployeeStatus(availability, usr.getId()), HttpStatus.OK);
-        } else {
+        System.out.println(today);
+        availability.setUser(usr);
+        System.out.println(availabilityRepo.existByDateAndUserId(today.toString(),usr.getId()));
+        if(availabilityRepo.existByDateAndUserId(today.toString(),usr.getId())!=null){
             return ResponseEntity.badRequest().body("You have already inserted for today");
+        }else {
+            availability.setDate(today);
+            return ResponseEntity.ok().body(availabilityService.saveEmployeeStatus(availability));
         }
-
-
     }
-
 
     @PostMapping("/pwReset")
     public ResponseEntity<?> resetPassword(@RequestBody User user, HttpServletRequest request) {
         if (user.getPassword().equals(user.getConfirmPass())) {
-
             return new ResponseEntity<>(userService.resetUserPassword(user), HttpStatus.OK);
         } else {
-            return ResponseEntity.badRequest().body("Password donot match ");
+            return ResponseEntity.badRequest().body("Password do not match ");
         }
 
     }
