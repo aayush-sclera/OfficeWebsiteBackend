@@ -14,6 +14,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Properties;
 
@@ -37,7 +38,7 @@ public class ResetFoodDB {
 //    @Scheduled(cron = "*/60 * * * * *")
     public String sendEmail() throws MessagingException, IOException {
         int i = 0;
-        List<String > emails=availabilityRepo.findAllAbsentUser();
+        List<String > emails=availabilityRepo.findAllAbsentUser(LocalDate.now().toString());
         InternetAddress[] internetAddresses = new InternetAddress[emails.size()];
         for (String email:emails) {
             internetAddresses[i] = new InternetAddress(email.toString());

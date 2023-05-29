@@ -14,10 +14,9 @@ import java.util.Map;
 public interface AvailabilityRepo extends JpaRepository<Availability, Integer> {
 
 
-    @Query(value = "select u.email  from user u join availability a on a.user_id=u.id where a.attendance='Absent'",nativeQuery = true)
-    List<String> findAllAbsentUser();
-
-
+//    @Query(value = "select u.email  from user u join availability a on a.user_id=u.id where a.attendance='Absent'",nativeQuery = true)
+    @Query(value = "select u.email from user u  where u.id not in (select availability.user_id from availability where availability.date=:today);",nativeQuery = true)
+    List<String> findAllAbsentUser(@Param("today") String today);
 //    @Query(value = "select count(food_pref)as count ,food_pref from  availability where food_pref not like \"Not Selected\" group by food_pref;",nativeQuery = true)
     @Query(value = "select count(food_pref)as count ,food_pref from  availability where date=:today group by food_pref",nativeQuery = true)
     List<Map<Integer,String >> countAllFoodType(@Param("today") String today);
