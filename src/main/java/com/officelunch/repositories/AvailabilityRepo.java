@@ -48,7 +48,7 @@ public interface AvailabilityRepo extends JpaRepository<Availability, Integer> {
 //            " ",nativeQuery = true)
 
 
-    @Query(value = "select u.username ,food_pref from  availability a left join user u on a.user_id = u.id where a.date='2023-05-28' union select u.username, 'Not-responded' from user u  where u.id not in (select availability.user_id from availability where availability.date='2023-05-28')",nativeQuery = true)
+    @Query(value = "select u.username ,food_pref from  availability a left join user u on a.user_id = u.id where a.date=:today union select u.username, 'Not-responded' from user u  where u.id not in (select availability.user_id from availability where availability.date=:today)",nativeQuery = true)
     List<Map<Objects,String>> listOfFoodTypes(String today);
 
 

@@ -196,7 +196,7 @@ public class UserController {
 //        allList.add(countInJson);
 
 
-        return ResponseEntity.ok().body(availabilityRepo.countAllFoodType("2023-05-28"));
+        return ResponseEntity.ok().body(availabilityRepo.listOfFoodTypes(LocalDate.now().toString()));
     }
 
 
