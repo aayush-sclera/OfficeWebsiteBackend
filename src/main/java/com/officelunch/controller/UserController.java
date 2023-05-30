@@ -1,17 +1,18 @@
 package com.officelunch.controller;
 
-import com.officelunch.helper.ConsequentDaysValidator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.officelunch.model.Availability;
 import com.officelunch.model.TokenResponse;
 import com.officelunch.model.User;
 import com.officelunch.repositories.AvailabilityRepo;
 import com.officelunch.repositories.UserRepositories;
-//import com.officelunch.security.JwtTokenUtil;
 import com.officelunch.security.JavaTokenUtil;
 import com.officelunch.security.UserSpringDetails;
 import com.officelunch.service.AvailabilityService;
 import com.officelunch.service.UserService;
 import com.officelunch.service.UserServiceTwo;
+import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,13 +23,14 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 @RestController
@@ -182,11 +184,31 @@ public class UserController {
 ////        }
 //    }
 
+    @GetMapping("/test")
+    public ResponseEntity<?> listOfAllFood() throws IOException {
+//        List<Object> allList= new ArrayList<>();
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        JsonNode user = objectMapper.readTree(availabilityRepo.listOfFoodTypes("2023-08-28"));
+//        JsonNode count = objectMapper.readTree(availabilityRepo.countAllFoodType("2023-08-28"));
+//        Object userInJson = objectMapper.treeToValue(user, Object.class);
+//        Object countInJson = objectMapper.treeToValue(count, Object.class);
+//        allList.add(userInJson);
+//        allList.add(countInJson);
+
+
+        return ResponseEntity.ok().body(availabilityRepo.countAllFoodType("2023-05-28"));
+    }
+
 
     @GetMapping("/getall")
     public ResponseEntity<?> getAllCountOfVegAndNonVeg() {
         String today = LocalDate.now().toString();
         return ResponseEntity.ok().body(availabilityRepo.countAllFoodType(today));
+    }
+    @GetMapping("/getallUsers")
+    public ResponseEntity<?> getAllCountOfVegAndNonVegUsers() {
+        String today = LocalDate.now().toString();
+        return ResponseEntity.ok().body(availabilityRepo.listOfFoodTypes(today));
     }
 
     @PostMapping("/enroll")
