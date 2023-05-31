@@ -31,7 +31,12 @@ public interface AvailabilityRepo extends JpaRepository<Availability, Integer> {
 //            " ",nativeQuery = true)
 
 
-    @Query(value = "select count(food_pref)as count ,food_pref from  availability where date=:today  group by food_pref union select count(u.email) as count, 'Not-responded' from user u  where u.id not in (select availability.user_id from availability where availability.date=:today)",nativeQuery = true)
+//    @Query(value = "select count(food_pref)as count ,food_pref from  availability where date=:today  group by food_pref union select count(u.email) as count, 'Not-responded' from user u  where u.id not in (select availability.user_id from availability where availability.date=:today)",nativeQuery = true)
+
+    @Query(value = "with default_tbl(count,food_pref) AS (values row (0,'veg'),row(0,'non-veg'),row(0,'not-responded'),row(0,'not-required')),\n" +
+            "res as (select count(food_pref)as count ,food_pref from  availability where date=:today  group by food_pref union\n" +
+            "select count(u.email) as count, 'not-responded' from user u  where u.id not in (select availability.user_id from availability where availability.date=:today))\n" +
+            "select COALESCE (res.count,default_tbl.count) as count,default_tbl.food_pref from default_tbl left join res on res.food_pref = default_tbl.food_pref \n",nativeQuery = true)
     List<Map<Integer,String>> countAllFoodType(@Param("today") String today);
 //    @Query(value = "select CASE WHEN date =:today and user_id =:userId then 'true'  ELSE 'false' END AS BOOLEAN from availability where user_id =:userId",nativeQuery = true)
 

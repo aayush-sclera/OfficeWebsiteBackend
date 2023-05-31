@@ -1,11 +1,9 @@
 package com.officelunch.service.serviceImpl;
 
 
-import com.officelunch.model.Availability;
 import com.officelunch.repositories.AvailabilityRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.mail.*;
@@ -20,7 +18,7 @@ import java.util.Properties;
 
 @Component
 @EnableScheduling
-public class ResetFoodDB {
+public class MailingService {
     @Autowired
     AvailabilityRepo availabilityRepo;
 
