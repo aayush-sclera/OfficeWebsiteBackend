@@ -13,13 +13,13 @@ import java.util.Map;
 @RestController
 public class test {
 
-//    @Autowired
-//    AvailabilityRepo availabilityRepo;
-//
-//    @GetMapping("/get")
-//   public List<Map<Integer,String > >ret(){
-//       return availabilityRepo.countAllVegandNonveg();
-//   }
+    @Autowired
+    AvailabilityRepo availabilityRepo;
+
+    @GetMapping("/get")
+   public String ret(){
+       return "hello";
+   }
 
 
 }

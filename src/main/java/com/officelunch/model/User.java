@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Getter
@@ -18,9 +19,10 @@ public class User {
     @Column(unique = true)
     private String email;
     private String password;
-
     @Transient
     private String confirmPass;
+    @ManyToMany(fetch = FetchType.EAGER )
+    private List<Role> roles;
 
 
     @Override

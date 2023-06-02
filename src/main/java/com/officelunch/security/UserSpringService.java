@@ -20,6 +20,7 @@ public class UserSpringService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> user = userRepositories.getByUsername(username);
+
         return user.map(UserSpringDetails::new)
                 .orElseThrow(()-> new UsernameNotFoundException(username));
     }

@@ -16,6 +16,7 @@ import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -31,7 +32,9 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/officeLunch/employees")
@@ -76,14 +79,21 @@ public class UserController {
 //    }
 
     @PostMapping("/register")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//
+//        Set<String> roles = authentication.getAuthorities().stream()
+//                .map(r -> r.getAuthority()).collect(Collectors.toSet());
+
+//        System.out.println(roles);
         if (userRepositories.existsByUsername(user.getUsername().toLowerCase())) {
             return ResponseEntity.badRequest().body("Duplicate entry of Username");
         }
         if (userRepositories.existsByEmail(user.getEmail())) {
             return ResponseEntity.badRequest().body("Duplicate entry of Email");
         }
-        if (Pattern.compile("@accessonline.io|@gmail.com").matcher(user.getEmail()).find()) {
+        if (Pattern.compile("^[A-Za-z0-9._%+-]+@(accessonline\\.io|gmail\\.com)$").matcher(user.getEmail()).find()) {
             if (user.getPassword().equals(user.getConfirmPass())) {
                 userService.saveUser(user);
             } else {
@@ -212,6 +222,7 @@ public class UserController {
     }
 
     @PostMapping("/enroll")
+
     public ResponseEntity<?> post(@RequestBody Availability availability) {
 
         UserSpringDetails user = (UserSpringDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

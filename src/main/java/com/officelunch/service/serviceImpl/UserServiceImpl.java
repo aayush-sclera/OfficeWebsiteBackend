@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Autowired
-    UserServiceImpl(UserRepositories userRepositories, BCryptPasswordEncoder  encoder) {
+    UserServiceImpl(UserRepositories userRepositories, BCryptPasswordEncoder encoder) {
         this.userRepositories = userRepositories;
         this.encoder = encoder;
     }
@@ -35,11 +35,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public String saveUser(User user) {
 
-            String password = encoder.encode(user.getPassword());
-            user.setUsername(user.getUsername().toLowerCase());
-            user.setPassword(password);
-            userRepositories.save(user);
-            return "registered Success";
+        String password = encoder.encode(user.getPassword());
+        user.setUsername(user.getUsername().toLowerCase());
+        user.setPassword(password);
+        userRepositories.save(user);
+        return "registered Success";
 
     }
 
