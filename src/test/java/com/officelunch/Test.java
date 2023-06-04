@@ -2,11 +2,15 @@ package com.officelunch;
 
 import com.azure.communication.email.EmailClient;
 import com.azure.communication.email.EmailClientBuilder;
+import com.azure.communication.email.implementation.models.EmailAttachment;
 import com.azure.communication.email.models.EmailMessage;
 import com.azure.communication.email.models.EmailSendResult;
 
+import com.azure.core.util.BinaryData;
 import com.azure.core.util.polling.PollResponse;
 import com.azure.core.util.polling.SyncPoller;
+
+import java.io.File;
 
 
 public class Test {
@@ -14,6 +18,10 @@ public class Test {
     public static void main(String[] args) {
 //        String connectionString = "endpoint=https://emai-l.communication.azure.com/;accesskey=32y5gtfKtIQ7xOu2U/ZezDMfA03qjJCL4ExLZadlqg0vp2gh6eozVuaNCoLGI737v9IBrXDo3hkBCRZYCFKadw==";
         String connectionString = "endpoint=https://access-systems-email-service.communication.azure.com/;accesskey=YTjD3GNf4KLCccHYPZdmeL6ONFgdpBEFalrL54WsLMuORTVMgzDOyDI+pzUDb8N93DLK99V86cmD8p6hIajKSA==";
+
+        BinaryData attachmentContent = BinaryData.fromFile(new File("C:/attachment.txt").toPath());
+
+
 
         EmailClient emailClient = new EmailClientBuilder()
                 .connectionString(connectionString)
