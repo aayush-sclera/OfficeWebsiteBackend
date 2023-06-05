@@ -6,14 +6,14 @@ import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 @Component
@@ -69,12 +69,20 @@ public class JavaTokenUtil implements Serializable {
         return false;
     }
 
-    public String generateToken(String username){
-        Map<String,Object> claims = new HashMap<>();
+    public String generateToken(String username, Collection<? extends GrantedAuthority> roles){
+        List<String > role = new ArrayList<>();
+        for (GrantedAuthority authority: roles) {
+            role.add(String.valueOf(authority));
+        }
+        Claims claims = Jwts.claims();
+            claims.put("roles", role);
+//        for (String rol:role) {
+//            claims.put("role", rol);
+//        }
         return doGenerateToken(claims,username);
     }
 
-    private String doGenerateToken(Map<String, Object> claims, String username) {
+    private String doGenerateToken(Claims claims, String username) {
 
         return Jwts.builder()
                 .setClaims(claims)

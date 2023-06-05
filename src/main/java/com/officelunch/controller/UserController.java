@@ -21,6 +21,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -30,9 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -143,7 +143,7 @@ public class UserController {
 
                     TokenResponse tok = new TokenResponse();
 //                tok.setToken(jwt.generateToken(user.getUsername()));
-                    String tokens = jwt.generateToken(user.getUsername().toLowerCase());
+                    String tokens = jwt.generateToken(user.getUsername().toLowerCase(), authentication.getAuthorities());
                     return ResponseEntity.ok().body(tokens);
                 } else {
                     throw new UsernameNotFoundException(user.getUsername());
