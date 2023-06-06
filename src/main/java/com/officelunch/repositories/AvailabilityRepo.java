@@ -57,7 +57,20 @@ public interface AvailabilityRepo extends JpaRepository<Availability, Integer> {
     List<Map<Objects,String>> listOfFoodTypes(String today);
 
 
+    @Query(value = "select count(food_pref) from availability where date between :date1 and :date2 and food_pref <> 'not-required'",nativeQuery = true)
+    Integer countRangeTotal(@Param("date1") String date1, @Param("date2") String date2);
+
+    @Query(value = "select count(food_pref) from availability where date =:date and food_pref <> 'not-required'",nativeQuery = true)
+    Integer countDailyTotal(@Param("date") String date);
+
 
 //     select count(food_pref)as count ,food_pref from  availability where date='2023-05-28'  group by food_pref union select count(u.id) as count, 'not-responded' from user u left join
 //availability a on u.id=a.user_id where a.id is null;
+
+//to count all food count for singe date
+//    select count(food_pref) from officeLunch.availability where date ='2023-05-08' and food_pref <> 'non-required';
+
+//    to count all food over a period of month
+//    select count(food_pref) from officeLunch.availability where date between '2023-05-01' and '2023-05-30' and food_pref <> 'not-required';
+
 }

@@ -241,13 +241,12 @@ public class UserController {
     }
 
     @PostMapping("/pwReset")
-    public ResponseEntity<?> resetPassword(@RequestBody User user, HttpServletRequest request) {
+    public ResponseEntity<?> resetPassword(@RequestBody User user) {
         if (user.getPassword().equals(user.getConfirmPass())) {
             return new ResponseEntity<>(userService.resetUserPassword(user), HttpStatus.OK);
         } else {
             return ResponseEntity.badRequest().body("Password do not match ");
         }
-
     }
 
     @PostMapping("/logout")
@@ -255,5 +254,15 @@ public class UserController {
         return "user logged out successfully";
     }
 
+
+    @GetMapping("/range")
+    public ResponseEntity<?> countOfMonth(@RequestBody Map<String ,Object> payload){
+        return ResponseEntity.ok().body(availabilityService.countRangeTotal(payload.get("date1").toString(),payload.get("date2").toString()));
+    }
+    @GetMapping("/single")
+    public ResponseEntity<?> countOfDay(@RequestBody Map<String ,Object> payload){
+        ;
+        return ResponseEntity.ok().body(availabilityService.countDailyTotal(payload.get("date").toString()));
+    }
 
 }

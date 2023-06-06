@@ -26,8 +26,16 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     @Override
     public Availability saveEmployeeStatus(Availability availability) {
-
       return availabilityRepo.save(availability);
+    }
 
+    @Override
+    public Integer countRangeTotal(String date1, String date2) {
+        return availabilityRepo.countRangeTotal(date1,date2);
+    }
+
+    @Override
+    public Integer countDailyTotal(String date) {
+        return availabilityRepo.countDailyTotal(date);
     }
 }

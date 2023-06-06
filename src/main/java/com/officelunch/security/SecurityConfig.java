@@ -59,7 +59,7 @@ public class SecurityConfig {
                 .csrf()
                 .disable()
                 .authorizeRequests()
-                .antMatchers( /*"/officeLunch/employees/register",*/"/officeLunch/employees/login","/get","/officeLunch/employees/test").permitAll()
+                .antMatchers( /*"/officeLunch/employees/register",*/"/officeLunch/employees/login","/get","/officeLunch/employees/test","/range","/single").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic().and()
