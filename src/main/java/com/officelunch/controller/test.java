@@ -37,7 +37,7 @@ public class test {
     public ResponseEntity<?> countOfDay(@RequestBody Map<String ,Object> payload){
         String date = (String) payload.get("date");
 
-        System.out.println(date);
+//        System.out.println(date);
         return ResponseEntity.ok().body(availabilityService.countDailyTotal(date.toString()));
     }
 

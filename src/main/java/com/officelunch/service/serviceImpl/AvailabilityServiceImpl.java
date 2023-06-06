@@ -8,8 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class AvailabilityServiceImpl implements AvailabilityService {
@@ -30,12 +31,12 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     @Override
-    public Integer countRangeTotal(String date1, String date2) {
+    public List<Map<Objects, String>> countRangeTotal(String date1, String date2) {
         return availabilityRepo.countRangeTotal(date1,date2);
     }
 
     @Override
-    public Integer countDailyTotal(String date) {
+    public List<Map<Objects, String>> countDailyTotal(String date) {
         return availabilityRepo.countDailyTotal(date);
     }
 }

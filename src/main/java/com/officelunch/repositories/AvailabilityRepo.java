@@ -57,11 +57,19 @@ public interface AvailabilityRepo extends JpaRepository<Availability, Integer> {
     List<Map<Objects,String>> listOfFoodTypes(String today);
 
 
-    @Query(value = "select count(food_pref) from availability where date between :date1 and :date2 and food_pref <> 'not-required'",nativeQuery = true)
-    Integer countRangeTotal(@Param("date1") String date1, @Param("date2") String date2);
+//    @Query(value = "select count(food_pref) from availability where date between :date1 and :date2 and food_pref <> 'not-required'",nativeQuery = true)
+    @Query(value ="with default_tbl (count,food_pref) as (values row(0,'veg'),row(0,'non-veg')),\n" +
+            "res as (select count(food_pref) as count, food_pref from availability where date BETWEEN  :date1 and :date2 and food_pref <> 'not-required' GROUP by food_pref )\n" +
+            "select COALESCE (res.count,default_tbl.count) as count, default_tbl.food_pref from default_tbl left join res using(food_pref) union\n" +
+            "select sum(count) , 'total' from res;",nativeQuery = true)
+    List<Map<Objects,String>> countRangeTotal(@Param("date1") String date1, @Param("date2") String date2);
 
-    @Query(value = "select count(food_pref) from availability where date =:date and food_pref <> 'not-required'",nativeQuery = true)
-    Integer countDailyTotal(@Param("date") String date);
+//    @Query(value = "select count(food_pref) from availability where date =:date and food_pref <> 'not-required'",nativeQuery = true)
+    @Query(value = "with default_tbl (count,food_pref) as (values row(0,'veg'),row(0,'non-veg')),\n" +
+            "res as (select count(food_pref) as count, food_pref from availability where date=:date and food_pref <> 'not-required' GROUP by food_pref )\n" +
+            "select COALESCE (res.count,default_tbl.count) as count, default_tbl.food_pref from default_tbl left join res using(food_pref) union\n" +
+            "select sum(count) , 'total' from res;",nativeQuery = true)
+    List<Map<Objects,String>> countDailyTotal(@Param("date") String date);
 
 
 //     select count(food_pref)as count ,food_pref from  availability where date='2023-05-28'  group by food_pref union select count(u.id) as count, 'not-responded' from user u left join
