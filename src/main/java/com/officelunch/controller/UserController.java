@@ -255,13 +255,12 @@ public class UserController {
     }
 
 
-    @GetMapping("/range")
+    @PostMapping("/range")
     public ResponseEntity<?> countOfMonth(@RequestBody Map<String ,Object> payload){
         return ResponseEntity.ok().body(availabilityService.countRangeTotal(payload.get("date1").toString(),payload.get("date2").toString()));
     }
-    @GetMapping("/single")
+    @PostMapping("/single")
     public ResponseEntity<?> countOfDay(@RequestBody Map<String ,Object> payload){
-        ;
         return ResponseEntity.ok().body(availabilityService.countDailyTotal(payload.get("date").toString()));
     }
 
