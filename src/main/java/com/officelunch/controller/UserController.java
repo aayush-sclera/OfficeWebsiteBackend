@@ -161,7 +161,9 @@ public class UserController {
                 Authentication authentication = authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(user.getUsername().toLowerCase(), user.getPassword()));
                 if (authentication.isAuthenticated()) {
-                    return ResponseEntity.ok().body(usr.isStat());
+                    Boolean stat =usr.isStat();
+                    String tokens = jwt.generateToken(user.getUsername().toLowerCase(), authentication.getAuthorities());
+                    return ResponseEntity.ok().body(stat);
                 } else {
                     throw new UsernameNotFoundException(user.getUsername());
                 }
@@ -259,10 +261,20 @@ public class UserController {
     }
 
     @PostMapping("/pwReset")
-    @PreAuthorize("hasAnyAuthority('ROLE_USER')")
+//    @PreAuthorize("hasAnyAuthority('ROLE_USER')")
     public ResponseEntity<?> resetPassword(@RequestBody User user) {
         if (user.getPassword().equals(user.getConfirmPass())) {
             return new ResponseEntity<>(userService.resetUserPassword(user), HttpStatus.OK);
+        } else {
+            return ResponseEntity.badRequest().body("Password do not match ");
+        }
+    }
+    @PostMapping("/changePass")
+//    @PreAuthorize("hasAnyAuthority('ROLE_USER')")
+    public ResponseEntity<?> resetPassword(@RequestBody User user,Principal principal) {
+        if (user.getPassword().equals(user.getConfirmPass())) {
+
+            return new ResponseEntity<>(userService.changeUserPassword(user,principal), HttpStatus.OK);
         } else {
             return ResponseEntity.badRequest().body("Password do not match ");
         }

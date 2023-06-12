@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.time.LocalDate;
 
 
@@ -63,12 +64,21 @@ public class UserServiceImpl implements UserService {
         String password = encoder.encode(user.getPassword());
         User usr = userRepositories.findByUsername(user.getUsername().toLowerCase());
         usr.setPassword(password);
+        usr.setStat(true);
         return userRepositories.save(usr);
     }
 
     @Override
     public User getUserByUserId(int userId) {
         return userRepositories.findById(userId).get();
+    }
+
+    @Override
+    public User changeUserPassword(User user, Principal principal) {
+        String password = encoder.encode(user.getPassword());
+        User usr =userRepositories.findByUsername(principal.getName().toLowerCase());
+        usr.setPassword(password);
+        return userRepositories.save(usr);
     }
 
 
