@@ -1,9 +1,7 @@
 package com.officelunch.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.officelunch.model.Availability;
-import com.officelunch.model.TokenResponse;
+import com.officelunch.model.FeedBack;
 import com.officelunch.model.User;
 import com.officelunch.repositories.AvailabilityRepo;
 import com.officelunch.repositories.UserRepositories;
@@ -11,8 +9,7 @@ import com.officelunch.security.JavaTokenUtil;
 import com.officelunch.security.UserSpringDetails;
 import com.officelunch.service.AvailabilityService;
 import com.officelunch.service.UserService;
-import com.officelunch.service.UserServiceTwo;
-import org.apache.tomcat.util.json.JSONParser;
+import com.officelunch.service.serviceImpl.FeedBackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,26 +18,20 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/officeLunch/employees")
-//@CrossOrigin(origins = "http://192.168.1.66:3000", allowedHeaders = "*")
+@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
 public class UserController {
-
     @Autowired
     JavaTokenUtil jwt;
     @Autowired
@@ -48,13 +39,14 @@ public class UserController {
     @Autowired
     private UserService userService;
     @Autowired
-    private UserServiceTwo userServiceTwo;
-    @Autowired
     AuthenticationManager authenticationManager;
     @Autowired
     AvailabilityRepo availabilityRepo;
     @Autowired
     private AvailabilityService availabilityService;
+
+    @Autowired
+    private FeedBackService feedBackService;
 //    @Autowired
 //    private ConsequentDaysValidator validator;
 
@@ -129,10 +121,10 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUserAndGenerateToken(@RequestBody User user, Principal principal) {
         User usr;
-        if(principal!=null){
+        if (principal != null) {
             usr = userRepositories.findByUsername(principal.getName());
 
-        }else {
+        } else {
             usr = userRepositories.findByUsername(user.getUsername());
         }
         if (encoder.matches(user.getPassword(), usr.getPassword())) {
@@ -141,7 +133,7 @@ public class UserController {
                         new UsernamePasswordAuthenticationToken(user.getUsername().toLowerCase(), user.getPassword()));
                 if (authentication.isAuthenticated()) {
 
-                    TokenResponse tok = new TokenResponse();
+//                    TokenResponse tok = new TokenResponse();
 //                tok.setToken(jwt.generateToken(user.getUsername()));
                     String tokens = jwt.generateToken(user.getUsername().toLowerCase(), authentication.getAuthorities());
                     return ResponseEntity.ok().body(tokens);
@@ -195,7 +187,7 @@ public class UserController {
 //    }
 
     @GetMapping("/test")
-    public ResponseEntity<?> listOfAllFood() throws IOException {
+    public ResponseEntity<?> listOfAllFood() {
 //        List<Object> allList= new ArrayList<>();
 //        ObjectMapper objectMapper = new ObjectMapper();
 //        JsonNode user = objectMapper.readTree(availabilityRepo.listOfFoodTypes("2023-08-28"));
@@ -204,18 +196,17 @@ public class UserController {
 //        Object countInJson = objectMapper.treeToValue(count, Object.class);
 //        allList.add(userInJson);
 //        allList.add(countInJson);
-
-
         return ResponseEntity.ok().body(availabilityRepo.countAllFoodType(LocalDate.now().toString()));
     }
 
 
-    @GetMapping("/getall")
+    @GetMapping("/getAll")
     public ResponseEntity<?> getAllCountOfVegAndNonVeg() {
         String today = LocalDate.now().toString();
         return ResponseEntity.ok().body(availabilityRepo.countAllFoodType(today));
     }
-    @GetMapping("/getallUsers")
+
+    @GetMapping("/getAllUsers")
     public ResponseEntity<?> getAllCountOfVegAndNonVegUsers() {
         String today = LocalDate.now().toString();
         return ResponseEntity.ok().body(availabilityRepo.listOfFoodTypes(today));
@@ -231,10 +222,10 @@ public class UserController {
         LocalDate today = LocalDate.now();
         System.out.println(today);
         availability.setUser(usr);
-        System.out.println(availabilityRepo.existByDateAndUserId(today.toString(),usr.getId()));
-        if(availabilityRepo.existByDateAndUserId(today.toString(),usr.getId())!=null){
+        System.out.println(availabilityRepo.existByDateAndUserId(today.toString(), usr.getId()));
+        if (availabilityRepo.existByDateAndUserId(today.toString(), usr.getId()) != null) {
             return ResponseEntity.badRequest().body("You have already inserted for today");
-        }else {
+        } else {
             availability.setDate(today);
             return ResponseEntity.ok().body(availabilityService.saveEmployeeStatus(availability));
         }
@@ -256,12 +247,39 @@ public class UserController {
 
 
     @PostMapping("/range")
-    public ResponseEntity<?> countOfMonth(@RequestBody Map<String ,Object> payload){
-        return ResponseEntity.ok().body(availabilityService.countRangeTotal(payload.get("date1").toString(),payload.get("date2").toString()));
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<?> countOfMonth(@RequestBody Map<String, Object> payload) {
+        return ResponseEntity.ok().body(availabilityService.countRangeTotal(payload.get("date1").toString(), payload.get("date2").toString()));
     }
+
     @PostMapping("/single")
-    public ResponseEntity<?> countOfDay(@RequestBody Map<String ,Object> payload){
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<?> countOfDay(@RequestBody Map<String, Object> payload) {
         return ResponseEntity.ok().body(availabilityService.countDailyTotal(payload.get("date").toString()));
     }
 
+
+    @PostMapping("/feedback")
+    public ResponseEntity<?> receiveFeedBack(@RequestBody FeedBack feedBack) {
+        if (feedBack.getContent().trim().split("\\s+").length > 200) {
+            return ResponseEntity.badRequest().body("Too loong Content");
+        } else {
+            return ResponseEntity.ok().body(feedBackService.saveFeedBack(feedBack));
+        }
+    }
+
+
+    @GetMapping("/feedbackToAdmin")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<?> showFeedBack() {
+        return ResponseEntity.ok().body(feedBackService.showAllFeedback());
+    }
+
+    @DeleteMapping("/feedBackDelete/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<?> showFeedBack(@PathVariable int id) {
+        feedBackService.deleteFeedback(id);
+        return ResponseEntity.ok().body("deleted Successfully");
+    }
 }
+

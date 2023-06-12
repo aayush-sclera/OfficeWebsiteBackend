@@ -4,10 +4,8 @@ package com.officelunch.service.serviceImpl;
 import com.azure.communication.email.EmailClient;
 import com.azure.communication.email.EmailClientBuilder;
 import com.azure.communication.email.models.EmailAddress;
-import com.azure.communication.email.models.EmailAttachment;
 import com.azure.communication.email.models.EmailMessage;
 import com.azure.communication.email.models.EmailSendResult;
-import com.azure.core.util.BinaryData;
 import com.azure.core.util.polling.PollResponse;
 import com.azure.core.util.polling.SyncPoller;
 import com.officelunch.repositories.AvailabilityRepo;
@@ -16,37 +14,18 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 @Component
 @EnableScheduling
 public class MailingService {
+
     @Autowired
     AvailabilityRepo availabilityRepo;
 
-//    @Scheduled(cron = "* * * * * *")
-//    public void resetDB() {
-//
-//        List<Availability> list = availabilityRepo.findAll();
-//
-//            for (Availability avl : list) {
-//            avl.setFoodPref("Not Selected");
-//            availabilityRepo.save(avl);
-//        }
-//    }
-
-//    @Scheduled(cron = "*/60 * * * * *")
-//    public String sendEmail() throws MessagingException, IOException {
+//    public void getEmail() throws AddressException {
 //        int i = 0;
 //        List<String > emails=availabilityRepo.findAllAbsentUser(LocalDate.now().toString());
 //        InternetAddress[] internetAddresses = new InternetAddress[emails.size()];
@@ -94,7 +73,7 @@ public class MailingService {
 //            multipart.addBodyPart(messageBodyPart);
 //            MimeBodyPart attachPart = new MimeBodyPart();
 //
-//            attachPart.attachFile("/home/dinesh/Downloads/genPDF/abc.png");
+////            attachPart.attachFile("/home/dinesh/Downloads/genPDF/abc.png");
 //            multipart.addBodyPart(attachPart);
 //            message.setContent(multipart);
 //
@@ -102,55 +81,54 @@ public class MailingService {
 //            transport.sendMessage(message, message.getRecipients(Message.RecipientType.TO));
 //            transport.close();
 //            System.out.println("send successfull");
-//            return "SUCCESS";
-//        } catch (NoSuchProviderException e) {
-//            e.printStackTrace();
-//            return "INVALID_EMAIL";
 //        } catch (MessagingException e) {
 //            e.printStackTrace();
 //        }
 //
 //
-//        return "success";
 //    }
 
-    @Scheduled(cron = "0 30 10 * * *")
+
+    @Scheduled(cron = "0 45 9 * * *")
     public void sendEmail() {
 //        List<String > emails=availabilityRepo.findAllAbsentUser(LocalDate.now().toString());
-        List<String > emails = new ArrayList<>();
+        List<String> emails = new ArrayList<>();
+        emails.add("aashishkr.thapa84@gmail.com");
         emails.add("atish.ojha@accessonline.io");
-        emails.add("bhuwan.bhandari@accessonline.io");
-        emails.add("bibek.basnet@accessonline.io");
-        emails.add("aayush.gurung@accessonline.io");
-        emails.add("sarthak.paneru@accessonline.io");
 
-        List<EmailAddress> recipients = new ArrayList<>();
-        for (String email : emails) {
-            recipients.add(new EmailAddress(email));
-        }
-        String connectionString = "endpoint=https://access-systems-email-service.communication.azure.com/;accesskey=YTjD3GNf4KLCccHYPZdmeL6ONFgdpBEFalrL54WsLMuORTVMgzDOyDI+pzUDb8N93DLK99V86cmD8p6hIajKSA==";
-        EmailClient emailClient = new EmailClientBuilder()
-                .connectionString(connectionString)
-                .buildClient();
+        String today = LocalDate.now().getDayOfWeek().toString().toLowerCase();
+        if (today.equalsIgnoreCase("sunday") || today.equalsIgnoreCase("saturday")) {
+            System.out.println(LocalDate.now().getDayOfWeek());
+        } else {
+            List<EmailAddress> recipients = new ArrayList<>();
+            for (String email : emails) {
+                recipients.add(new EmailAddress(email));
+            }
+            String connectionString = "endpoint=https://access-systems-email-service.communication.azure.com/;accesskey=YTjD3GNf4KLCccHYPZdmeL6ONFgdpBEFalrL54WsLMuORTVMgzDOyDI+pzUDb8N93DLK99V86cmD8p6hIajKSA==";
+            EmailClient emailClient = new EmailClientBuilder()
+                    .connectionString(connectionString)
+                    .buildClient();
 
 //        BinaryData attachmentContent = BinaryData.fromFile(new File("/home/dinesh/Downloads/genPDF/abc.png").toPath());
 //        EmailAttachment attachment = new EmailAttachment("attachment.txt","text/plain",attachmentContent);
+            try {
+                String subject = "Daily Lunch Order Reminder: Don't forget to place your lunch order before 10 AM today! Click here to submit your order: Please select your preference here : https://test.accesssystems.com.np/service";
 
-        String subject = "Guys you have violated the office rules can you come to office for today i have consider next time every thing must me said by me ";
-
-        EmailMessage message = new EmailMessage()
-                .setSenderAddress("DoNotReply@ab1173d1-af9e-43c5-9cec-908c03d18133.azurecomm.net")
-                .setSubject("welcome to Azure Communication service email")
-                .setBodyPlainText(subject)
-                .setToRecipients(recipients);
+                EmailMessage message = new EmailMessage()
+                        .setSenderAddress("DoNotReply@ab1173d1-af9e-43c5-9cec-908c03d18133.azurecomm.net")
+                        .setSubject("welcome to Azure Communication service email")
+                        .setBodyPlainText(subject)
+                        .setToRecipients(recipients);
 //                .setAttachments(attachment);
+                SyncPoller<EmailSendResult, EmailSendResult> poller = emailClient.beginSend(message, null);
+                PollResponse<EmailSendResult> response = poller.waitForCompletion();
+                System.out.println("Send SuccessFull:  " + response.getValue().toString());
 
-        SyncPoller<EmailSendResult, EmailSendResult> poller = emailClient.beginSend(message, null);
-        PollResponse<EmailSendResult> response = poller.waitForCompletion();
-        System.out.println("\n ==========================================================================================");
-        System.out.println(response.getValue().getId());
-        System.out.println("\n ==========================================================================================");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
+        }
     }
 
 }
