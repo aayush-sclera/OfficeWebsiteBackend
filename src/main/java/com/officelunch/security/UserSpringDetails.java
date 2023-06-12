@@ -25,7 +25,6 @@ public class UserSpringDetails implements UserDetails {
         password = user.getPassword();
         List<SimpleGrantedAuthority> simpleGrantedAuthorities = new ArrayList<>();
         for (Role r : user.getRoles()) {
-            System.out.println("----------------> "+r.getRoleName());
             SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority(r.getRoleName());
             simpleGrantedAuthorities.add(simpleGrantedAuthority);
         }

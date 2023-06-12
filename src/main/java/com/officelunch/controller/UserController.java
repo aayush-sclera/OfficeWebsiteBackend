@@ -2,6 +2,7 @@ package com.officelunch.controller;
 
 import com.officelunch.model.Availability;
 import com.officelunch.model.FeedBack;
+import com.officelunch.model.Role;
 import com.officelunch.model.User;
 import com.officelunch.repositories.AvailabilityRepo;
 import com.officelunch.repositories.UserRepositories;
@@ -25,12 +26,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/officeLunch/employees")
-@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
+@CrossOrigin(origins = "http://192.168.1.71:3000", allowedHeaders = "*")
+//@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
 public class UserController {
     @Autowired
     JavaTokenUtil jwt;
@@ -127,24 +131,47 @@ public class UserController {
         } else {
             usr = userRepositories.findByUsername(user.getUsername());
         }
-        if (encoder.matches(user.getPassword(), usr.getPassword())) {
+
+
+        String role=usr.getRoles().stream()
+                .map(Role::getRoleName)
+                .collect(Collectors.joining(", "));
+
+        if(role.equals("ROLE_ADMIN")||usr.isStat()){
+            if (encoder.matches(user.getPassword(), usr.getPassword())) {
+                try {
+                    Authentication authentication = authenticationManager.authenticate(
+                            new UsernamePasswordAuthenticationToken(user.getUsername().toLowerCase(), user.getPassword()));
+                    if (authentication.isAuthenticated()) {
+
+//                    TokenResponse tok = new TokenResponse();
+//                tok.setToken(jwt.generateToken(user.getUsername()));
+                        String tokens = jwt.generateToken(user.getUsername().toLowerCase(), authentication.getAuthorities());
+                        return ResponseEntity.ok().body(tokens);
+                    } else {
+                        throw new UsernameNotFoundException(user.getUsername());
+                    }
+                } catch (AuthenticationException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }else {
             try {
                 Authentication authentication = authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(user.getUsername().toLowerCase(), user.getPassword()));
                 if (authentication.isAuthenticated()) {
-
-//                    TokenResponse tok = new TokenResponse();
-//                tok.setToken(jwt.generateToken(user.getUsername()));
-                    String tokens = jwt.generateToken(user.getUsername().toLowerCase(), authentication.getAuthorities());
-                    return ResponseEntity.ok().body(tokens);
+                    return ResponseEntity.ok().body(usr.isStat());
                 } else {
                     throw new UsernameNotFoundException(user.getUsername());
                 }
             } catch (AuthenticationException e) {
                 e.printStackTrace();
             }
-
         }
+
+
+
         return ResponseEntity.badRequest().body("Password Do not Match");
     }
 
@@ -232,6 +259,7 @@ public class UserController {
     }
 
     @PostMapping("/pwReset")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER')")
     public ResponseEntity<?> resetPassword(@RequestBody User user) {
         if (user.getPassword().equals(user.getConfirmPass())) {
             return new ResponseEntity<>(userService.resetUserPassword(user), HttpStatus.OK);

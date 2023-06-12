@@ -59,7 +59,7 @@ public class SecurityConfig {
                 .csrf()
                 .disable()
                 .authorizeRequests()
-                .antMatchers( /*"/officeLunch/employees/register",*/"/officeLunch/employees/login","/get","/officeLunch/employees/test","/range","/single","/officeLunch/employees/feedback").permitAll()
+                .antMatchers( /*"/officeLunch/employees/register",*/"/officeLunch/employees/login","/get","/officeLunch/employees/test","/range","/single","/officeLunch/employees/feedback","/officeLunch/employees/pwReset").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic().and()

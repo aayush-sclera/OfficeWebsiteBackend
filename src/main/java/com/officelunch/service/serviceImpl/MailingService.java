@@ -89,7 +89,7 @@ public class MailingService {
 //    }
 
 
-    @Scheduled(cron = "0 45 9 * * *")
+    @Scheduled(cron = "0 45 9 * * *",zone = "Asia/Kathmandu")
     public void sendEmail() {
 //        List<String > emails=availabilityRepo.findAllAbsentUser(LocalDate.now().toString());
         List<String> emails = new ArrayList<>();
@@ -130,5 +130,13 @@ public class MailingService {
 
         }
     }
+
+
+//    @Scheduled(cron = "0 8 13 * * * ",zone = "Asia/Kathmandu")
+//    public void display(){
+//        for (int i =0; i<10;i++){
+//            System.out.println("dinesh "+i);
+//        }
+//    }
 
 }

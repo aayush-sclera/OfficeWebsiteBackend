@@ -23,7 +23,7 @@ public class User {
     private String confirmPass;
     @ManyToMany(fetch = FetchType.EAGER )
     private List<Role> roles;
-
+    private boolean stat = Boolean.FALSE;
 
     @Override
     public String toString() {
