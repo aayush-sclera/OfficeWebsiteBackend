@@ -74,12 +74,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User changeUserPassword(User user, Principal principal) {
-        String password = encoder.encode(user.getPassword());
-        User usr =userRepositories.findByUsername(principal.getName().toLowerCase());
-        usr.setPassword(password);
-        return userRepositories.save(usr);
+    public User changeUserPassword(String pass, User user) {
+        user.setPassword(encoder.encode(pass));
+        return userRepositories.save(user);
     }
+
+//    @Override
+//    public User changeUserPassword(User user, Principal principal) {
+//        String password = encoder.encode(user.getPassword());
+//        User usr =userRepositories.findByUsername(principal.getName().toLowerCase());
+//        usr.setPassword(password);
+//        return userRepositories.save(usr);
+//    }
+
 
 
 }

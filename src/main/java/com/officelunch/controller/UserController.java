@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -125,13 +124,13 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUserAndGenerateToken(@RequestBody User user, Principal principal) {
         User usr;
-        if (principal != null) {
-            usr = userRepositories.findByUsername(principal.getName());
 
-        } else {
-            usr = userRepositories.findByUsername(user.getUsername());
-        }
+            if (principal != null) {
+                usr = userRepositories.findByUsername(principal.getName());
 
+            } else {
+                usr = userRepositories.findByUsername(user.getUsername());
+            }
 
         String role=usr.getRoles().stream()
                 .map(Role::getRoleName)
@@ -271,13 +270,20 @@ public class UserController {
     }
     @PostMapping("/changePass")
 //    @PreAuthorize("hasAnyAuthority('ROLE_USER')")
-    public ResponseEntity<?> resetPassword(@RequestBody User user,Principal principal) {
-        if (user.getPassword().equals(user.getConfirmPass())) {
+    public ResponseEntity<?> resetPassword(@RequestBody Map<Object,String> userData,Principal principal) {
 
-            return new ResponseEntity<>(userService.changeUserPassword(user,principal), HttpStatus.OK);
-        } else {
-            return ResponseEntity.badRequest().body("Password do not match ");
+        User usr = userRepositories.findByUsername(principal.getName().toLowerCase());
+        System.out.println(usr.getUsername());
+        if(encoder.matches(userData.get("oldPass"), usr.getPassword())){
+            if (userData.get("newPass").equals(userData.get("confirmPass"))) {
+                return new ResponseEntity<>(userService.changeUserPassword(userData.get("newPass"),usr), HttpStatus.OK);
+            } else {
+                return ResponseEntity.badRequest().body("Password do not match ");
+            }
+        }else {
+            return ResponseEntity.badRequest().body("old Password do not match");
         }
+
     }
 
     @PostMapping("/logout")

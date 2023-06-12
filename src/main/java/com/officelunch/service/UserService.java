@@ -10,5 +10,5 @@ public interface UserService {
     User resetUserPassword(User user);
     User getUserByUserId(int userId);
 
-    User changeUserPassword(User user, Principal principal);
+    User changeUserPassword(String pass, User user);
 }
