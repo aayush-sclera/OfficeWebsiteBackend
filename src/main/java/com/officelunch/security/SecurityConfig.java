@@ -55,11 +55,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors()
+//                .disable()
                 .and()
                 .csrf()
                 .disable()
                 .authorizeRequests()
-                .antMatchers( /*"/officeLunch/employees/register",*/"/officeLunch/employees/login","/get","/officeLunch/employees/test","/range","/single","/officeLunch/employees/feedback","/officeLunch/employees/pwReset").permitAll()
+                .antMatchers( /*"/officeLunch/employees/register",*/"/officeLunch/employees/api/applications/*","/officeLunch/employees/api/careers/*","/officeLunch/employees/api/careers/add","/officeLunch/employees/api/applications/apply/*","/officeLunch/employees/api/applications/cv/**","/officeLunch/employees/api/careers/**","/officeLunch/employees/login","/officeLunch/employees/api/careers/get","/officeLunch/employees/test","/officeLunch/employees/range","/officeLunch/employees/single","/officeLunch/employees/feedback","/officeLunch/employees/pwReset").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic().and()

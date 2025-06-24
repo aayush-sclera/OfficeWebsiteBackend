@@ -24,6 +24,7 @@ public class User {
     @ManyToMany(fetch = FetchType.EAGER )
     private List<Role> roles;
     private boolean stat = Boolean.FALSE;
+    private boolean isEmployee = Boolean.FALSE;
 
     @Override
     public String toString() {

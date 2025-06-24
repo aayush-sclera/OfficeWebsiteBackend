@@ -1,18 +1,12 @@
 package com.officelunch.service.serviceImpl;
 
-import com.officelunch.model.Availability;
 import com.officelunch.model.User;
 import com.officelunch.repositories.AvailabilityRepo;
 import com.officelunch.repositories.UserRepositories;
 import com.officelunch.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.security.Principal;
-import java.time.LocalDate;
 
 
 @Service
@@ -79,14 +73,11 @@ public class UserServiceImpl implements UserService {
         return userRepositories.save(user);
     }
 
-//    @Override
-//    public User changeUserPassword(User user, Principal principal) {
-//        String password = encoder.encode(user.getPassword());
-//        User usr =userRepositories.findByUsername(principal.getName().toLowerCase());
-//        usr.setPassword(password);
-//        return userRepositories.save(usr);
-//    }
-
+    @Override
+    public String deactivateEmployee(String email) {
+        userRepositories.deactivateEmployee(email);
+        return "Employee Deactivated Successfully";
+    }
 
 
 }

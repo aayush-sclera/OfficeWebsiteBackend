@@ -32,8 +32,8 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/officeLunch/employees")
-@CrossOrigin(origins = "http://192.168.1.71:3000", allowedHeaders = "*")
-//@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
+//@CrossOrigin(origins = "http://192.168.1.71:3000", allowedHeaders = "*")
+//@CrossOrigin(origins = {"https://accesssystems.com.np","http://accesssystems.com.np"}, allowedHeaders = "*")
 public class UserController {
     @Autowired
     JavaTokenUtil jwt;
@@ -50,76 +50,31 @@ public class UserController {
 
     @Autowired
     private FeedBackService feedBackService;
-//    @Autowired
-//    private ConsequentDaysValidator validator;
 
     @Autowired
     BCryptPasswordEncoder encoder;
 
-//    @Autowired
-//    PasswordEncoder passwordEncoder;
-
-//    @PostMapping("/register")
-//    public TokenResponse postUser(@RequestBody User user) {
-//        System.out.println(user.getUsername());
-//        if (userService.saveUser(user)!=null){
-//            if (userServiceTwo.register(user)!=null){
-//                return new ResponseEntity<>(user, HttpStatus.CREATED);
-//
-//            }else {
-//                return ResponseEntity.badRequest().body("Duplicate Entry");
-//            }
-//        HttpStatus created = HttpStatus.CREATED;
-//        return new ResponseEntity<>(HttpStatus.CREATED);
-//    }
-
     @PostMapping("/register")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//
-//        Set<String> roles = authentication.getAuthorities().stream()
-//                .map(r -> r.getAuthority()).collect(Collectors.toSet());
 
-//        System.out.println(roles);
         if (userRepositories.existsByUsername(user.getUsername().toLowerCase())) {
             return ResponseEntity.badRequest().body("Duplicate entry of Username");
         }
         if (userRepositories.existsByEmail(user.getEmail())) {
             return ResponseEntity.badRequest().body("Duplicate entry of Email");
         }
-        if (Pattern.compile("^[A-Za-z0-9._%+-]+@(accessonline\\.io|gmail\\.com)$").matcher(user.getEmail()).find()) {
+//        if (Pattern.compile("^[A-Za-z0-9._%+-]+@(accessonline\\.io|gmail\\.com)$").matcher(user.getEmail()).find()) {
             if (user.getPassword().equals(user.getConfirmPass())) {
                 userService.saveUser(user);
             } else {
                 return ResponseEntity.badRequest().body("Password Do not match");
             }
             return ResponseEntity.ok().body("Register success");
-        } else {
-            return ResponseEntity.badRequest().body("Error: Email must contain  domain name '@accessonline.io' and '@gmail.com' ");
-        }
-    }
-//
-//        }
-//    @PostMapping("/login")
-//    public ResponseEntity<?> loginUser(@RequestBody User user, HttpSession session) {
-//        if (user.getUsername() == null || user.getPassword() == null) {
-//            return new ResponseEntity<>("Username or Password is Empty", HttpStatus.EXPECTATION_FAILED);
-//        }
-//        if (!userRepositories.existsByUsername(user.getUsername())){
-//            return ResponseEntity.badRequest().body("Username is not registered. Register first To Login");
-//        }
-//        User userData = userService.getUserByUserName(user.getUsername(), user.getPassword());
-//        if (userData == null) {
-//            return new ResponseEntity<>("username or password is invalid", HttpStatus.BAD_GATEWAY);
 //        } else {
-//           session.setAttribute("username", user.getUsername());
-//          System.out.println(session.getAttributeNames()+ "++++");
-//            return new ResponseEntity<>(user.getUsername(), HttpStatus.OK);
-//
-////            return  ResponseEntity.ok().headers();
+//            return ResponseEntity.badRequest().body("Error: Email must contain  domain name '@accessonline.io' and '@gmail.com' ");
 //        }
-//    }
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUserAndGenerateToken(@RequestBody User user, Principal principal) {
@@ -136,94 +91,47 @@ public class UserController {
                 .map(Role::getRoleName)
                 .collect(Collectors.joining(", "));
 
-        if(role.equals("ROLE_ADMIN")||usr.isStat()){
-            if (encoder.matches(user.getPassword(), usr.getPassword())) {
+        if(!usr.isEmployee()){
+            if(role.equals("ROLE_ADMIN")||usr.isStat()){
+                if (encoder.matches(user.getPassword(), usr.getPassword())) {
+                    try {
+                        Authentication authentication = authenticationManager.authenticate(
+                                new UsernamePasswordAuthenticationToken(user.getUsername().toLowerCase(), user.getPassword()));
+                        if (authentication.isAuthenticated()) {
+                            String tokens = jwt.generateToken(user.getUsername().toLowerCase(), authentication.getAuthorities());
+                            return ResponseEntity.ok().body(tokens);
+                        } else {
+                            throw new UsernameNotFoundException(user.getUsername());
+                        }
+                    } catch (AuthenticationException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }else {
                 try {
                     Authentication authentication = authenticationManager.authenticate(
                             new UsernamePasswordAuthenticationToken(user.getUsername().toLowerCase(), user.getPassword()));
                     if (authentication.isAuthenticated()) {
-
-//                    TokenResponse tok = new TokenResponse();
-//                tok.setToken(jwt.generateToken(user.getUsername()));
+                        Boolean stat =usr.isStat();
                         String tokens = jwt.generateToken(user.getUsername().toLowerCase(), authentication.getAuthorities());
-                        return ResponseEntity.ok().body(tokens);
+                        return ResponseEntity.ok().body(stat);
                     } else {
                         throw new UsernameNotFoundException(user.getUsername());
                     }
                 } catch (AuthenticationException e) {
                     e.printStackTrace();
                 }
-
             }
         }else {
-            try {
-                Authentication authentication = authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(user.getUsername().toLowerCase(), user.getPassword()));
-                if (authentication.isAuthenticated()) {
-                    Boolean stat =usr.isStat();
-                    String tokens = jwt.generateToken(user.getUsername().toLowerCase(), authentication.getAuthorities());
-                    return ResponseEntity.ok().body(stat);
-                } else {
-                    throw new UsernameNotFoundException(user.getUsername());
-                }
-            } catch (AuthenticationException e) {
-                e.printStackTrace();
-            }
+            return ResponseEntity.ok().body("Username or Password Do not Match");
         }
 
-
-
-        return ResponseEntity.badRequest().body("Password Do not Match");
+        return ResponseEntity.badRequest().body("Username or Password Do not Match");
     }
-
-    //    @PostMapping("/enroll")
-//    public ResponseEntity<?> enrollForFood(@RequestBody Availability availability) {
-////        HttpSession session = request.getSession();
-////        String name = (String) session.getAttribute("username");
-//        String name = availability.getUsername();
-//        if (name!=null && name.equals(availability.getUsername())) {
-//            User user = userRepositories.findByUsername(name);
-//            availability.setUser(user);
-//            availability.setAttendance("Present");
-//            return ResponseEntity.ok().body(availabilityService.saveEmployeeStatus(availability, user.getId()));
-//        } else {
-//            if(!userRepositories.existsByUsername(availability.getUsername())){
-//                return ResponseEntity.badRequest().body("user is not registered. Register First to enroll for food");
-//            }else
-//            {
-//                return ResponseEntity.badRequest().body("provided username is not logged in. Log in First To order food");
-//            }
-//        }
-//    }
-//    @PostMapping("/enroll")
-//    public ResponseEntity<?> enrollForFood(@RequestBody Availability availability) {
-////        HttpSession session = request.getSession();
-////        String name = (String) session.getAttribute("username");
-////            jwt.getUsernameFromToken()
-//             user = userRepositories.findByUsername(availability.getUsername());
-//            availability.setUser(user);
-//            availability.setAttendance("Present");
-//            return ResponseEntity.ok().body(availabilityService.saveEmployeeStatus(availability, user.getId()));
-////        } else {
-////            if(!userRepositories.existsByUsername(availability.getUsername())){
-////                return ResponseEntity.badRequest().body("user is not registered. Register First to enroll for food");
-////            }else
-////            {
-////                return ResponseEntity.badRequest().body("provided username is not logged in. Log in First To order food");
-////            }
-////        }
-//    }
 
     @GetMapping("/test")
     public ResponseEntity<?> listOfAllFood() {
-//        List<Object> allList= new ArrayList<>();
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        JsonNode user = objectMapper.readTree(availabilityRepo.listOfFoodTypes("2023-08-28"));
-//        JsonNode count = objectMapper.readTree(availabilityRepo.countAllFoodType("2023-08-28"));
-//        Object userInJson = objectMapper.treeToValue(user, Object.class);
-//        Object countInJson = objectMapper.treeToValue(count, Object.class);
-//        allList.add(userInJson);
-//        allList.add(countInJson);
         return ResponseEntity.ok().body(availabilityRepo.countAllFoodType(LocalDate.now().toString()));
     }
 
@@ -241,7 +149,6 @@ public class UserController {
     }
 
     @PostMapping("/enroll")
-
     public ResponseEntity<?> post(@RequestBody Availability availability) {
 
         UserSpringDetails user = (UserSpringDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -260,7 +167,6 @@ public class UserController {
     }
 
     @PostMapping("/pwReset")
-//    @PreAuthorize("hasAnyAuthority('ROLE_USER')")
     public ResponseEntity<?> resetPassword(@RequestBody User user) {
         if (user.getPassword().equals(user.getConfirmPass())) {
             return new ResponseEntity<>(userService.resetUserPassword(user), HttpStatus.OK);
@@ -269,7 +175,6 @@ public class UserController {
         }
     }
     @PostMapping("/changePass")
-//    @PreAuthorize("hasAnyAuthority('ROLE_USER')")
     public ResponseEntity<?> resetPassword(@RequestBody Map<Object,String> userData,Principal principal) {
 
         User usr = userRepositories.findByUsername(principal.getName().toLowerCase());
@@ -327,5 +232,19 @@ public class UserController {
         feedBackService.deleteFeedback(id);
         return ResponseEntity.ok().body("deleted Successfully");
     }
+
+    @GetMapping("/allEmployees")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<?> getAllEmployees() {
+        return ResponseEntity.ok().body(userRepositories.getAllEmployee());
+    }
+
+    @PutMapping("/deactivateEmployee/{email}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<?> deactivateEmployee(@PathVariable String email){
+        userService.deactivateEmployee(email);
+        return ResponseEntity.ok().body("Employee Deactivated Successfully");
+    }
+
 }
 

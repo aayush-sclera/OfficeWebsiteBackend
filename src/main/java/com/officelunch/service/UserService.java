@@ -9,6 +9,7 @@ public interface UserService {
     User getUserByUserName(String username,String password);
     User resetUserPassword(User user);
     User getUserByUserId(int userId);
-
     User changeUserPassword(String pass, User user);
+    String deactivateEmployee(String email);
+
 }
